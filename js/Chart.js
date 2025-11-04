@@ -13,7 +13,7 @@ const jsonFiles = [
     "../py/주간.json",            // 주간 거래 데이터
     "../py/월간.json",            // 월간 거래 데이터
     //"../py/년간.json",             년간 거래 데이터
-    
+
     "../py/아파트 거래량.json",    // 아파트 거래량 데이터
     "../py/아파트 거래 면적.json"   // 아파트 거래 면적 데이터
 ];
@@ -34,6 +34,8 @@ for (let i = 0; i < jsonFiles.length; i++) {   // 배열 길이만큼 반복
             // ======================================
             const key = Object.keys(data)[0];        // 첫 번째 키 이름 추출 ("일간" 등)
             const records = data[key];               // 데이터 배열 부분만 가져오기
+
+
 
             // ======================================
             // ④ HTML 카드 구조 생성 (표 + 그래프)
@@ -79,9 +81,25 @@ for (let i = 0; i < jsonFiles.length; i++) {   // 배열 길이만큼 반복
             // ======================================
             // ⑧ Chart.js 그래프용 데이터 준비
             // ======================================
-            const labels = [];                                           // X축 라벨 배열
+            labels = [];   // X축 라벨 배열
 
-            // 날짜나 년월, 년 등의 컬럼명을 기준으로 라벨 구성
+            if (key === "층별") {
+                labels = records.map(r => r["구분"]);
+            } else if (key === "주간") {
+                labels = records.map(r => r["주차"]);
+            } else if (key === "아파트 거래량") {
+                labels = records.map(r => r["시도"]);
+            } else if (key === "아파트 거래 면적") {
+                labels = records.map(r => r["시도"]);
+            } else {
+                // 기본값 — 거래일, 년월, 년 중 하나 사용
+                labels = records.map(r =>
+                    r["거래일"] || r["년월"] || r["년"] || `#${records.indexOf(r) + 1}`
+                );
+
+            }
+
+            /* // 날짜나 년월, 년 등의 컬럼명을 기준으로 라벨 구성
             for (let n = 0; n < records.length; n++) {
                 const item = records[n];                                   // 현재 행 데이터
                 labels.push(
@@ -91,6 +109,7 @@ for (let i = 0; i < jsonFiles.length; i++) {   // 배열 길이만큼 반복
                     `#${n + 1}`                                              // 그래도 없으면 순번 사용
                 );
             }
+                */
 
             // ======================================
             // ⑨ 그래프 색상 팔레트 정의 (파스텔톤)

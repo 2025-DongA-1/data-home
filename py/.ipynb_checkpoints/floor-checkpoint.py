@@ -15,9 +15,5 @@ def floor_home(floor):
             deck16 += 1
     dk = [deck1_5, deck6_10, deck11_15, deck16]
     labels = ['1층~5층', '6층~10층', '11층~15층', '16층 이상']
-    ddt = pd.DataFrame({
-        '구분': labels,
-        '거래건수': dk
-    })
-   
-    return ddt
+    ddk = [labels, dk]
+    return pd.DataFrame(ddk. import= labels)
