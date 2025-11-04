@@ -1,180 +1,119 @@
-<!DOCTYPE html> <!-- HTML5 문서임을 선언 -->
-<html lang="ko"> <!-- 문서의 기본 언어를 한국어로 지정 -->
+<!DOCTYPE html> <!-- HTML5 문서 선언 -->
+<html lang="ko"> <!-- 문서 언어를 한국어로 지정 -->
 
 <head>
-    <meta charset="UTF-8"> <!-- UTF-8 문자 인코딩 사용 (한글 지원) -->
-    <title>아파트 거래 데이터 대시보드</title> <!-- 브라우저 탭에 표시될 제목 -->
+    <meta charset="UTF-8"> <!-- 한글 깨짐 방지 -->
+    <title>아파트 거래 데이터 (Chart.js)</title> <!-- 브라우저 탭에 표시될 제목 -->
 
-    <!-- Chart.js 라이브러리 로드 (그래프 시각화를 위해 사용) -->
+    <!-- Chart.js 라이브러리 불러오기 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Chart.js를 포함할 외부 JS 파일 연결 -->
+    <script src="../js/Chart.js" defer></script> <!-- defer: HTML 렌더링 후 JS 실행 -->
+
     <style>
-        /* ===== 기본 페이지 스타일 ===== */
+        /* ===== 기본 스타일 ===== */
         body {
-            font-family: "맑은 고딕", sans-serif; /* 기본 글꼴 지정 */
-            margin: 30px; /* 전체 페이지 여백 */
-            background-color: white; /* 배경색 흰색 */
-            color: black; /* 텍스트 색상 검정 */
+            font-family: "맑은 고딕", sans-serif;
+            /* 기본 글꼴 */
+            margin: 30px;
+            /* 페이지 여백 */
+            background-color: white;
+            /* 배경색 */
+            color: black;
+            /* 기본 글자색 */
         }
 
-        /* 상단 제목 스타일 */
         h1 {
-            text-align: center; /* 가운데 정렬 */
-            margin-bottom: 30px; /* 제목과 아래 콘텐츠 간 간격 */
+            text-align: center;
+            /* 제목 중앙정렬 */
+            margin-bottom: 30px;
+            /* 아래 여백 */
         }
 
-        /* ===== 대시보드 영역 설정 ===== */
-        .dashboard {
-            display: grid; /* CSS Grid 레이아웃 사용 */
-            grid-template-columns: repeat(2, 1fr); /* 한 줄에 1개의 카드만 표시 */
-            gap: 25px; /* 카드 간의 간격 */
-            width: 95%; /* 페이지 전체 폭의 95% 사용 */
-            margin: 0 auto; /* 중앙 정렬 */
+        #container {
+            display: grid;
+            /* CSS Grid 사용 */
+            grid-template-columns: repeat(2, 1fr);
+            /* 한 줄에 2개씩 배치 */
+            gap: 20px;
+            /* 카드 사이 간격 */
+            width: 95%;
+            margin: 0 auto;
         }
 
-        /* ===== 카드(그래프 + 표) 디자인 ===== */
+        /* 각 카드(섹션) 스타일 */
         .card {
-            border: 1px solid #000; /* 검은색 테두리 */
-            padding: 15px; /* 내부 여백 */
-            background-color: #fdfdfd; /* 약간 회색 배경 */
+            border: 1px solid #000;
+            /* 검은 테두리 */
+            margin-bottom: 40px;
+            /* 카드 간 간격 */
+            padding: 20px;
+            /* 내부 여백 */
+            background: #f9f9f9;
+            /* 밝은 회색 배경 */
         }
 
-        /* 카드 내부의 소제목 스타일 (예: 월간 거래 현황) */
-        .card h2 {
-            text-align: center; /* 가운데 정렬 */
-            margin-bottom: 15px; /* 제목 아래 여백 */
-        }
-
-        /* ===== 그래프 표시 영역 (Chart.js canvas 위치) ===== */
         .chart-area {
-            width: 100%; /* 부모 요소의 전체 너비 사용 */
-            height: 280px; /* 고정 높이 설정 */
-            margin-bottom: 10px; /* 그래프와 표 사이 간격 */
+            width: 100%;
+            /* 부모 폭 전체 */
+            height: 300px;
+            /* 그래프 높이 고정 */
+            margin-bottom: 15px;
+            /* 표와 간격 */
         }
 
-        /* ===== 표 전체 컨테이너 ===== */
-        .table-container {
-            max-height: 240px; /* 세로 최대 높이 지정 (스크롤 생김) */
-            overflow-y: auto; /* 세로 스크롤 자동 표시 */
-            border: 1px solid #000; /* 테두리 */
-        }
-
-        /* ===== 표 기본 스타일 ===== */
+        /* 표 디자인 */
         table {
-            width: 100%; /* 가로 전체 사용 */
-            border-collapse: collapse; /* 테두리 겹침 제거 */
-            font-size: 12px; /* 표 글씨 크기 작게 */
+            width: 100%;
+            border-collapse: collapse;
+            /* 테두리 겹침 제거 */
+            font-size: 12px;
         }
 
-        /* 표의 각 셀(td/th) 스타일 */
         th,
         td {
-            border: 1px solid #000; /* 셀 구분선 */
-            padding: 5px; /* 셀 내부 여백 */
-            text-align: center; /* 내용 가운데 정렬 */
+            border: 1px solid #666;
+            /* 칸 구분선 */
+            padding: 5px;
+            text-align: center;
         }
 
-        /* 표의 헤더 스타일 (컬럼명 부분) */
         th {
-            background: #e0e0e0; /* 회색 배경 */
-            position: sticky; /* 스크롤 시 상단 고정 */
-            top: 0; /* 화면 상단 기준 고정 */
+            background: #ddd;
+            /* 헤더 배경색 */
+            position: sticky;
+            /* 스크롤해도 상단 고정 */
+            top: 0;
         }
 
-        /* ===== 표 하단 상태 표시줄 (건수 등 안내문) ===== */
-        .table-status {
-            text-align: right; /* 오른쪽 정렬 */
-            font-size: 12px; /* 작은 글씨 */
-            color: #555; /* 회색 텍스트 */
-            margin-top: 4px; /* 위쪽 여백 */
+        /* 스크롤 가능한 영역 */
+        .table-container {
+            max-height: 240px;
+            overflow-y: auto;
+            /* 세로 스크롤 */
         }
+
+        /* 하단 상태 표시 */
+        .table-status {
+            text-align: right;
+            font-size: 12px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+
     </style>
 </head>
 
 <body>
-    <!-- 메인 페이지 제목 -->
+
+    <!-- 상단 제목 -->
     <h1>아파트 거래 데이터 대시보드</h1>
 
-    <!-- ===== 전체 대시보드 영역 (카드 여러 개를 포함) ===== -->
-    <div class="dashboard">
+    <!-- JSON별 데이터가 들어갈 영역 -->
+    <div id="container"></div>
 
-        <!-- ********** [1] 년간 카드 ********** -->
-        <div class="card" id="year-card">
-            <h2>년간 거래 현황</h2> <!-- 섹션 제목 -->
-            <div class="chart-area">
-                <!-- Chart.js 그래프가 그려질 canvas 요소 -->
-                <canvas id="chart-year"></canvas>
-            </div>
-
-            <!-- 표 영역 (년간 데이터) -->
-            <div class="table-container">
-                <table id="table-year">
-                    <thead></thead> <!-- 표의 컬럼명 영역 (JS에서 채워짐) -->
-                    <tbody></tbody> <!-- 표의 데이터 영역 (JS에서 채워짐) -->
-                </table>
-            </div>
-
-            <!-- 표 하단 상태 표시줄 -->
-            <div id="status-year" class="table-status"></div>
-        </div>
-
-        <!-- ********** [2] 월간 카드 ********** -->
-        <div class="card" id="month-card">
-            <h2>월간 거래 현황</h2>
-            <div class="chart-area">
-                <canvas id="chart-month"></canvas>
-            </div>
-
-            <div class="table-container">
-                <table id="table-month">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <div id="status-month" class="table-status"></div>
-        </div>
-
-        <!-- ********** [3] 주간 카드 ********** -->
-        <div class="card" id="week-card">
-            <h2>주간 거래 현황</h2>
-            <div class="chart-area">
-                <canvas id="chart-week"></canvas>
-            </div>
-
-            <div class="table-container">
-                <table id="table-week">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <div id="status-week" class="table-status"></div>
-        </div>
-
-        <!-- ********** [4] 일간 카드 ********** -->
-        <div class="card" id="day-card">
-            <h2>일간 거래 현황</h2>
-            <div class="chart-area">
-                <canvas id="chart-day"></canvas>
-            </div>
-
-            <div class="table-container">
-                <table id="table-day">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <div id="status-day" class="table-status"></div>
-        </div>
-
-    </div> <!-- dashboard 종료 -->
-
-    <!-- ===== 외부 JS 파일 연결 ===== -->
-    <!-- ../js/Chart.js : 실제 데이터 시각화를 담당하는 자바스크립트 파일 -->
-    <!-- defer 속성은 HTML 렌더링 후 JS 실행을 보장 -->
-    <script src="../js/Chart.js" defer></script>
 </body>
 
 </html>

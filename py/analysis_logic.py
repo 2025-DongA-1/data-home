@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore', category=UserWarning, module='pandas')
 
 # 파일 경로 설정
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, 'data')
+DATA_DIR = os.path.join(BASE_DIR, '..', 'data')
 
 
 # --- 1. 데이터 로딩 및 전처리 ---
