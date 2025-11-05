@@ -12,6 +12,7 @@ from pathlib import Path
 # py/__init__.py에 정의된 create_analyzer를 가져옴
 from py import create_analyzer
 
+
 def test_simple_api():
     """편의 함수를 사용한 테스트"""
     print("=" * 60)
@@ -66,7 +67,8 @@ def test_detailed_api():
     analyzer = RealEstateAnalyzer(loader)
     
     # 월간 거래량 조회
-    monthly_volume = analyzer.get_sido_monthly_volume(sidos=['부산광역시', '광주광역시']) # 필터링 테스트
+    monthly_volume = analyzer.get_sido_monthly_volume(sidos=[
+        '부산광역시', '광주광역시'])  # 필터링 테스트
     print(f"\n✓ [필터링됨] 월간 거래량 데이터: {len(monthly_volume)}개 시도")
     print(f"✓ 샘플 데이터:")
     print(json.dumps(monthly_volume, ensure_ascii=False, indent=2))
