@@ -19,6 +19,18 @@ const jsonFiles = [
     "../py/월별 아파트 거래 면적.json"   // 지역별 아파트 거래량 면적 데이터
 ];
 
+//숫자 포맷 함수 추가 (formatNumber)------------------------------------
+ function formatNumber(value) {
+   if (typeof value === "number") {
+     return value % 1 === 0
+       ? value.toLocaleString("ko-KR")
+       : value.toLocaleString("ko-KR", { 
+           minimumFractionDigits: 2, 
+           maximumFractionDigits: 2 
+         });
+   }
+   return value;
+ }
 // ==============================================
 // ② 각 JSON 파일을 순차적으로 불러오기 (for문)
 // ==============================================
@@ -62,7 +74,7 @@ for (let i = 0; i < jsonFiles.length; i++) {   // 배열 길이만큼 반복
                 html += `<tr>`;                                            // 행 시작
                 for (let c = 0; c < headers.length; c++) {                 // 각 컬럼 반복
                     const value = records[r][headers[c]];                    // 현재 셀 값
-                    html += `<td>${value}</td>`;                             // 표 셀에 값 출력
+                    html += `<td>${formatNumber(value)}</td>`;   // 표 셀에 값 출력------------
                 }
                 html += `</tr>`;                                           // 행 종료
             }
