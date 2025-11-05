@@ -1,173 +1,230 @@
-/**********************************************************************
- * Chart.js - JSON 데이터를 불러와 표 + 막대 그래프 표시
- * 모든 컬럼(숫자형 데이터)을 자동으로 그래프에 표시
- * 2025-11 버전 (막대 그래프 적용 + 줄마다 상세 주석)
- **********************************************************************/
-
 // ==============================================
-// ① 불러올 JSON 파일 목록 정의
+// JSON 파일 목록 정의 
+// type: "bar", "line", "pie"
+// (flip: 0=기본, 1=반전)
 // ==============================================
 const jsonFiles = [
-    "../py/면적.json",            // 예시 JSON 파일 (면적 데이터)
+    
+    { file: "../py/면적.json", type: "bar", flip: 1 }        
 ];
 
 // ==============================================
-// 숫자 포맷 함수 정의 (천 단위 콤마 + 소수점 2자리)
+// ② 숫자 포맷 함수 (천 단위 구분, 소수점 2자리)
 // ==============================================
 function formatNumber(value) {
-    if (typeof value === "number") {
-        return value % 1 === 0
-            ? value.toLocaleString("ko-KR")
-            : value.toLocaleString("ko-KR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+    if (typeof value === "number" || !isNaN(value)) {         // 숫자 또는 숫자형 문자열인지 확인
+        const num = parseFloat(value);                          // 숫자로 변환
+        return num % 1 === 0                                    // 정수라면
+            ? num.toLocaleString("ko-KR")                         // 천 단위 구분
+            : num.toLocaleString("ko-KR", {                       // 소수일 경우
+                minimumFractionDigits: 2,                         // 소수점 최소 2자리
+                maximumFractionDigits: 2,                         // 소수점 최대 2자리
             });
     }
-    return value;
+    return value;                                             // 숫자 아니면 그대로 반환
 }
 
 // ==============================================
-// ② JSON 파일을 순차적으로 불러오기
+// ③ 각 JSON 파일을 순차적으로 로드 및 차트 생성
 // ==============================================
-for (let i = 0; i < jsonFiles.length; i++) {
-    const file = jsonFiles[i]; // 현재 파일명
+for (let i = 0; i < jsonFiles.length; i++) {                // 파일 목록 반복
+    const { file, type, flip } = jsonFiles[i];                // flip 값 포함 추출
 
+    // fetch()로 JSON 파일 불러오기
     fetch(file)
-        .then(res => res.json()) // JSON 형식으로 파싱
-        .then(data => {
-            // ======================================
-            // ③ JSON 구조 파악 ("면적": [ {...}, {...} ])
-            // ======================================
-            const key = Object.keys(data)[0];  // "면적" 등
-            const records = data[key];         // 실제 배열 데이터
+        .then((res) => res.json())                              // JSON 객체로 변환
+        .then((data) => {
+            const key = Object.keys(data)[0];                     // 첫 번째 키 추출
+            const records = data[key];                            // 키에 해당하는 데이터 배열
+            if (!records || records.length === 0) return;         // 데이터 없으면 종료
 
             // ======================================
-            // ④ HTML 구조 (표 + 그래프 영역)
+            // ④ HTML 카드 구조 생성
             // ======================================
-            let html = `<div class="card">`;
-            html += `<h2>${key} (${records.length}건)</h2>`;
-            html += `<div class="chart-area"><canvas id="chart-${i}"></canvas></div>`;
-            html += `<div class="table-container"><table><thead><tr>`;
+            let html = `<div class="card">`;                      // 카드 시작
+            html += `<h2>${key} (${records.length}건)</h2>`;      // 제목 표시
+            html += `<div class="chart-area"><canvas id="chart-${i}"></canvas></div>`; // 차트 캔버스
+            html += `<div class="table-container"><table><thead><tr>`;                // 표 시작
 
-            // ======================================
-            // ⑤ 표 헤더 생성
-            // ======================================
-            const headers = Object.keys(records[0]);
-            for (let j = 0; j < headers.length; j++) {
-                html += `<th>${headers[j]}</th>`;
+            const headers = Object.keys(records[0]);               // 컬럼명 추출
+            for (let j = 0; j < headers.length; j++) {             // 컬럼 반복
+                html += `<th>${headers[j]}</th>`;                    // 헤더 추가
             }
-            html += `</tr></thead><tbody>`;
+            html += `</tr></thead><tbody>`;                        // 헤더 종료
 
-            // ======================================
-            // ⑥ 표 데이터 행 생성
-            // ======================================
-            for (let r = 0; r < records.length; r++) {
-                html += `<tr>`;
-                for (let c = 0; c < headers.length; c++) {
-                    const value = records[r][headers[c]];
-                    html += `<td>${formatNumber(value)}</td>`;
+            // 표 본문 구성
+            for (let r = 0; r < records.length; r++) {             // 행 반복
+                html += `<tr>`;                                      // 행 시작
+                for (let c = 0; c < headers.length; c++) {           // 열 반복
+                    const value = records[r][headers[c]];              // 값 추출
+                    html += `<td>${formatNumber(value)}</td>`;         // 셀 추가
                 }
-                html += `</tr>`;
+                html += `</tr>`;                                     // 행 종료
             }
-            html += `</tbody></table></div>`;
-            html += `<div class="table-status">총 ${records.length}건</div>`;
-            html += `</div>`;
+
+            html += `</tbody></table></div>`;                      // 표 닫기
+            html += `<div class="table-status" id="status-${i}">총 ${records.length}건 </div>`; // 상태 표시줄
+            html += `</div>`;                                      // 카드 닫기
+
+            // 완성된 카드 HTML 삽입
+            document.getElementById("container").insertAdjacentHTML("beforeend", html);
 
             // ======================================
-            // ⑦ 완성된 HTML을 container에 추가
+            // ⑤ 라벨 구성 (X축 라벨용)
             // ======================================
-            document
-                .getElementById("container")
-                .insertAdjacentHTML("beforeend", html);
-
-            // ======================================
-            // ⑧ X축 라벨 정의
-            // ======================================
-            let labels = [];
-            if (key === "면적") labels = records.map(r => r["규모"]);
-            else if (key === "주간") labels = records.map(r => r["주차"]);
-            else if (key === "아파트 거래량") labels = records.map(r => r["시도"]);
-            else if (key === "아파트 거래 면적") labels = records.map(r => r["시도"]);
+            let labels = [];                                       // 라벨 초기화
+            if (key === "층별") labels = records.map((r) => r["구분"]);          // 층별 데이터
+            else if (key === "주간") labels = records.map((r) => r["주차"]);     // 주간 데이터
+            else if (key.includes("거래량") || key.includes("면적"))             // 거래 관련
+                labels = records.map((r) => r["시도"]);                             // 시도 컬럼 사용
             else
-                labels = records.map(r =>
-                    r["거래일"] || r["년월"] || r["년"] || `#${records.indexOf(r) + 1}`
+                labels = records.map(                                               // 기본 라벨
+                    (r) =>
+                        r["거래일"] ||
+                        r["년월"] ||
+                        r["연도"] ||
+                        r["년도"] ||
+                        r["년"] ||
+                        r["시도"] ||
+                        `#${records.indexOf(r) + 1}`
                 );
 
             // ======================================
-            // ⑨ 색상 팔레트 정의
+            // ⑥ 색상 팔레트 정의
             // ======================================
             const colorList = [
-                "#ff6384", "#36a2eb", "#ff9f40",
-                "#4bc0c0", "#9966ff", "#c9cbcf",
-                "#8bc34a", "#f06292", "#64b5f6",
-                "#FFFACD", "#808000", "#A52A2A"
+                "#ff6384", "#36a2eb", "#ff9f40", "#4bc0c0", "#9966ff",
+                "#c9cbcf", "#8bc34a", "#f06292", "#64b5f6", "#FFFACD",
+                "#808000", "#A52A2A"
             ];
 
             // ======================================
-            // ⑩ Chart.js 데이터셋 생성 (숫자형 컬럼만)
+            // ⑦ 데이터셋 구성
             // ======================================
             const datasets = [];
             let colorIndex = 0;
-
-            for (let j = 0; j < headers.length; j++) {
+            for (let j = 0; j < headers.length; j++) {             // 컬럼 반복
                 const col = headers[j];
                 const firstValue = records[0][col];
-
-                // 숫자형 데이터만 그래프에 포함
-                if (typeof firstValue === "number") {
-                    const colData = records.map(r => r[col]); // 값 배열
+                if (!isNaN(parseFloat(firstValue))) {                // 숫자형 컬럼만 포함
+                    const colData = records.map((r) => parseFloat(r[col]) || 0);
                     datasets.push({
-                        label: col,                                            // 범례 이름
-                        data: colData,                                         // Y축 데이터
-                        backgroundColor: colorList[colorIndex % colorList.length], // 막대 색상
-                        borderColor: colorList[colorIndex % colorList.length], // 테두리 색상
-                        borderWidth: 2,                                        // 테두리 두께
-                        borderRadius: 8,                                       // 막대 둥근 모서리
-                        borderSkipped: false,                                  // 하단도 둥글게
-                        barThickness: 30                                       // 막대 두께 조정
+                        label: col,                                      // 범례 이름
+                        data: colData,                                   // 데이터 배열
+                        backgroundColor: colorList[colorIndex % colorList.length],
+                        borderColor: colorList[colorIndex % colorList.length],
+                        borderWidth: 2,
+                        borderRadius: type === "bar" ? 10 : 0,
+                        borderSkipped: false,
+                        fill: type === "line" ? false : true,
+                        tension: type === "line" ? 0.25 : 0,
                     });
                     colorIndex++;
                 }
             }
 
             // ======================================
-            // ⑪ Chart.js 막대 그래프 생성
+            // ⑧ Chart.js 차트 생성
             // ======================================
             const ctx = document.getElementById(`chart-${i}`).getContext("2d");
-            new Chart(ctx, {
-                type: "bar", // ✅ 막대 그래프로 변경
-                data: {
-                    labels: labels,  // X축 라벨
-                    datasets: datasets // 데이터셋 전체
-                },
+            const chart = new Chart(ctx, {
+                type: type,
+                data: { labels, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: true, position: "top" },
-                        tooltip: { enabled: true }
+                        tooltip: { enabled: true },
                     },
-                    scales: {
-                        x: {
-                            title: { display: true, text: "기간" },
-                            ticks: { autoSkip: true, maxTicksLimit: 20 }
-                        },
-                        y: {
-                            title: { display: true, text: "값" },
-                            ticks: {
-                                // 숫자 단위 축약 표시
-                                callback: function (value) {
-                                    if (value >= 100000000)
-                                        return (value / 100000000).toFixed(1) + "억";
-                                    if (value >= 10000)
-                                        return (value / 10000).toFixed(0) + "만";
-                                    return value;
-                                }
-                            }
-                        }
-                    }
+                    scales:
+                        type === "pie" || type === "doughnut"
+                            ? {}
+                            : {
+                                x: {
+                                    title: { display: true, text: "기간" },
+                                    ticks: { autoSkip: true, maxTicksLimit: 20 },
+                                    grid: { display: false },
+                                },
+                                y: {
+                                    title: { display: true, text: "값" },
+                                    ticks: {
+                                        callback: function (value) {
+                                            if (value >= 100000000)
+                                                return (value / 100000000).toFixed(1) + "억";
+                                            if (value >= 10000)
+                                                return (value / 10000).toFixed(0) + "만";
+                                            return value;
+                                        },
+                                    },
+                                    grid: { color: "rgba(0,0,0,0.1)" },
+                                },
+                            },
+                },
+            });
+
+            // ======================================
+            // ⑨ flip 값이 1이면 자동 반전 실행
+            // ======================================
+            if (flip === 1) {                                     // flip 설정값 확인
+                flipChart(chart, headers, records, labels, colorList); // 반전 실행
+                document.getElementById(`status-${i}`).dataset.flipped = "true"; // 상태 표시
+                document.getElementById(`status-${i}`).textContent = `총 ${records.length}건`;
+            }
+
+            // ======================================
+            // ⑩ 상태 표시줄 클릭 시 수동 전환
+            // ======================================
+            document.getElementById(`status-${i}`).addEventListener("click", function () {
+                const isOriginal = !this.dataset.flipped;            // 현재 전환 상태 확인
+                this.dataset.flipped = isOriginal ? "true" : "";     // 상태 반전
+                if (isOriginal) {
+                    flipChart(chart, headers, records, labels, colorList); // 반전 실행
+                    this.textContent = `총 ${records.length}건 `;
+                } else {
+                    chart.data.labels = labels;                       // 원래 데이터 복원
+                    chart.data.datasets = datasets;
+                    chart.update();
+                    this.textContent = `총 ${records.length}건 `;
                 }
             });
         })
-        .catch(err => console.error(`${file} 로드 오류:`, err));
+        .catch((err) => console.error(`${file} 로드 오류:`, err)); // 로드 오류 처리
+}
+
+// ==============================================
+// ⑪ 행/열 전환용 공통 함수
+// ==============================================
+function flipChart(chart, headers, records, labels, colorList) {
+    const newLabels = headers.filter((h) => !isNaN(records[0][h])); // 숫자형 컬럼만 라벨로 사용
+    const newDatasets = [];                                         // 새로운 데이터셋 배열
+    for (let r = 0; r < records.length; r++) {                      // 각 행 반복
+        const row = records[r];
+        const values = newLabels.map((col) => parseFloat(row[col]) || 0);
+        const labelCandidates = [                                     // 이름 후보 목록
+            "시도",  "구분", "항목", "규모", "기간",
+            "거래일", "년월", "연도", "년도", "년"
+        ];
+        let name = null;
+        for (let k = 0; k < labelCandidates.length; k++) {
+            if (row[labelCandidates[k]]) {
+                name = row[labelCandidates[k]];
+                break;
+            }
+        }
+        if (!name && labels[r]) name = labels[r];                     // 기존 라벨 사용
+        if (!name) name = `행${r + 1}`;                               // 없으면 행번호 사용
+        newDatasets.push({                                            // 데이터셋 추가
+            label: name,
+            data: values,
+            backgroundColor: colorList[r % colorList.length],
+            borderColor: colorList[r % colorList.length],
+            borderWidth: 2,
+            borderRadius: 10,
+            borderSkipped: false,
+        });
+    }
+    chart.data.labels = newLabels;                                  // 라벨 교체
+    chart.data.datasets = newDatasets;                              // 데이터 교체
+    chart.update();                                                 // 차트 갱신
 }

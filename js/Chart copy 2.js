@@ -4,9 +4,14 @@
 // (flip: 0=기본, 1=반전)
 // ==============================================
 const jsonFiles = [
-    
-    { file: "../py/주간.json", type: "line", flip: 0 }   
-
+    { file: "../py/층별.json", type: "bar", flip: 0 },      
+    { file: "../py/일간.json", type: "line", flip: 0 },      
+    { file: "../py/주간.json", type: "line", flip: 0 },    
+    { file: "../py/월간.json", type: "line", flip: 0 },     
+    { file: "../py/월별 아파트 거래 거래량 면적.json", type: "line", flip: 1 }, 
+    { file: "../py/월별 아파트 거래 면적.json", type: "line", flip: 1 },       
+    { file: "../py/월별 아파트 거래량.json", type: "line", flip: 1 },         
+    { file: "../py/면적.json", type: "bar", flip: 1 }        
 ];
 
 // ==============================================
@@ -170,7 +175,7 @@ for (let i = 0; i < jsonFiles.length; i++) {                // 파일 목록 반
             if (flip === 1) {                                     // flip 설정값 확인
                 flipChart(chart, headers, records, labels, colorList); // 반전 실행
                 document.getElementById(`status-${i}`).dataset.flipped = "true"; // 상태 표시
-                document.getElementById(`status-${i}`).textContent = `총 ${records.length}건`;
+                document.getElementById(`status-${i}`).textContent = "차트 전환됨 (다시 클릭 시 원래대로)";
             }
 
             // ======================================

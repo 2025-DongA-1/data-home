@@ -1,4 +1,6 @@
 import pandas as pd
+import json
+
 def floor_home(floor):
     deck1_5 = 0
     deck6_10 = 0
@@ -19,5 +21,16 @@ def floor_home(floor):
         '구분': labels,
         '거래건수': dk
     })
-   
+    
     return ddt
+
+
+def mu_home(deal):
+
+    all_m = deal.iloc[3:12, 4:6]
+    all_m['2020년 6월'] = all_m['2020년 6월'].str.replace('[",]', '', regex=True).astype(int)
+
+
+    return all_m
+
+
