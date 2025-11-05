@@ -1,0 +1,10 @@
+deal = pd.read_csv('(월) 거래규모별 아파트거래현황.csv')
+all_ = deal.iloc[3:12, 4:6]
+all_['2020년 6월'] = all_['2020년 6월'].str.replace('[",]', '', regex=True).astype(int)
+
+plt.figure(figsize=(15, 8))
+plt.bar(all_['규모'], all_['2020년 6월'])
+plt.title('전국 아파트 면적당 거래량')
+plt.xlabel('거래 면적')
+plt.ylabel('면적 당 거래 건수')
+plt.show()
