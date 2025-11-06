@@ -1,0 +1,6 @@
+
+1. py 폴더에 result.json 파일 없으면  data vhfejdp apttest.csv 확인후 
+
+2. py 폴더에 tojson.ipynb  실행해서 result.json  생성확인  
+
+3. html 폴더의 Chart.html 서버로 띠움 

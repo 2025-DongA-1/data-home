@@ -1,6 +1,10 @@
 
-1. py 폴더에 result.json 파일 없으면  data vhfejdp apttest.csv 확인후 
+1. py 폴더에 .json 파일 없으면  data 폴더의 .csv 확인후 
 
-2. py 폴더에 tojson.ipynb  실행해서 result.json  생성확인  
+2. py 폴더에 tojson.ipynb  실행해서 .json 파일 생성확인
 
-3. html 폴더의 Chart.html 서버로 띠움 
+3. js 폴더의 js파일 이름이 .json파일 과 같고  js 파일 내부에  jsonFiles에 .json 경로 지정 필요
+
+4. 최상위 의  app.ipynb 실행하여 서버 실행 (실행전 ip 확인) 
+
+5. 기본 /는  html 폴더의 indes.html 파일  
